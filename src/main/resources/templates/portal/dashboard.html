@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' - College Fest Manager'">My Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/portal-nav :: navbar}"></div>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-title-group">
+            <h1 th:text="'Welcome, ' + ${participant.name}">Welcome</h1>
+            <p class="page-subtitle">Track your team status, event details, and live standings</p>
+        </div>
+        <div th:if="${team == null}">
+            <a th:href="@{/portal/team/new}" class="btn">Register a Team</a>
+        </div>
+    </div>
+
+    <!-- Team Info Card -->
+    <div class="card" th:if="${team != null}" style="margin-bottom: 1.5rem;">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0;" th:text="${team.teamName}">My Team</h2>
+                <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0.25rem 0 0 0;" th:text="'Event: ' + ${eventName}">Event Name</p>
+            </div>
+            <a th:href="@{/portal/team}" class="btn btn-secondary btn-sm">Manage Team</a>
+        </div>
+        <div class="card-body">
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Team Leader</span>
+                    <span class="detail-value" th:text="${team.leaderName}">Leader Name</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Leader Contact</span>
+                    <span class="detail-value" th:text="${team.leaderEmail != null ? team.leaderEmail : '-'}">Email</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Total Members</span>
+                    <span class="detail-value" th:text="${team.participants != null ? #lists.size(team.participants) : 1}">1</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty Team Card -->
+    <div class="card" th:if="${team == null}" style="margin-bottom: 1.5rem;">
+        <div class="card-body" style="text-align:center; padding: 2.5rem 1.5rem;">
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">You have not registered or joined a team yet.</p>
+            <a th:href="@{/portal/team/new}" class="btn">Register Your Team</a>
+        </div>
+    </div>
+
+    <!-- Event Leaderboard -->
+    <div class="card">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0;">Event Leaderboard</h2>
+                <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0.25rem 0 0 0;" th:text="'Standings for ' + ${eventName}">Standings</p>
+            </div>
+            <span class="badge" th:text="${eventName}">Event</span>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th style="width: 70px;">Rank</th>
+                    <th>Team Name</th>
+                    <th>Technical</th>
+                    <th>Innovation</th>
+                    <th>Judges Scored</th>
+                    <th style="text-align: right;">Average Score</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(leaderboard)}" class="empty-row">
+                    <td colspan="6">No scores recorded for this event yet. Check back during evaluation!</td>
+                </tr>
+                <tr th:each="entry : ${leaderboard}"
+                    th:classappend="${team != null and entry.teamId == team.id ? 'highlight-row' : ''}">
+                    <td>
+                        <span class="rank-badge"
+                              th:classappend="${entry.rank == 1 ? 'gold' : (entry.rank == 2 ? 'silver' : (entry.rank == 3 ? 'bronze' : ''))}"
+                              th:text="${entry.rank}">1</span>
+                    </td>
+                    <td>
+                        <strong th:text="${entry.teamName}">Team Alpha</strong>
+                        <span th:if="${team != null and entry.teamId == team.id}" class="badge badge-primary" style="margin-left: 0.5rem;">You</span>
+                    </td>
+                    <td th:text="${#numbers.formatDecimal(entry.avgTechnicalImplementation, 1, 2)}">8.50</td>
+                    <td th:text="${#numbers.formatDecimal(entry.avgInnovation, 1, 2)}">8.00</td>
+                    <td th:text="${entry.numberOfJudgesScored}">2</td>
+                    <td style="text-align: right;">
+                        <span class="final-score" th:text="${#numbers.formatDecimal(entry.averageScore, 1, 2)}">8.25</span>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

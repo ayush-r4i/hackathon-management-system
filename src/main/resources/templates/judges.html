@@ -63,6 +63,7 @@
                 <td><span class="badge" th:text="${j.expertise}">AI / ML</span></td>
                 <td style="text-align: right;">
                     <div class="actions-cell" style="justify-content: flex-end;">
+                        <a th:href="@{/admin/judges/{id}/credentials(id=${j.id})}" class="btn btn-secondary btn-sm" title="Assign events & credentials">Assign</a>
                         <a th:href="@{/judges/{id}/edit(id=${j.id})}" class="btn btn-secondary btn-sm">Edit</a>
                         <form th:action="@{/judges/{id}/delete(id=${j.id})}" method="post" style="display:inline"
                               onsubmit="return confirm('Delete this judge? This will also remove their scores.');">

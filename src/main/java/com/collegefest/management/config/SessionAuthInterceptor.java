@@ -6,21 +6,38 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 /**
- * Very simple "are you logged in?" check using HttpSession - no Spring Security involved.
- * If there is no "admin" attribute in the session, the user is redirected to /login.
+ * Role-aware session interceptor.
+ * Checks session attributes "role", "userId", and "admin" (for backward compat).
  */
 public class SessionAuthInterceptor implements HandlerInterceptor {
+
+    private final String requiredRole;
+
+    public SessionAuthInterceptor(String requiredRole) {
+        this.requiredRole = requiredRole;
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
             throws Exception {
         HttpSession session = request.getSession(false);
-        boolean loggedIn = session != null && session.getAttribute("admin") != null;
-
-        if (!loggedIn) {
+        if (session == null) {
             response.sendRedirect(request.getContextPath() + "/login");
             return false;
         }
+
+        String role = (String) session.getAttribute("role");
+
+        // Backward compatibility: old sessions that only have "admin" attribute
+        if (role == null && session.getAttribute("admin") != null) {
+            role = "ADMIN";
+        }
+
+        if (role == null || !role.equals(requiredRole)) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return false;
+        }
+
         return true;
     }
 }

@@ -3,8 +3,10 @@ package com.collegefest.management.service;
 import com.collegefest.management.entity.Participant;
 import com.collegefest.management.entity.Team;
 import com.collegefest.management.exception.DuplicateResourceException;
+import com.collegefest.management.exception.InvalidCredentialsException;
 import com.collegefest.management.exception.ResourceNotFoundException;
 import com.collegefest.management.repository.ParticipantRepository;
+import com.collegefest.management.util.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,6 +75,29 @@ public class ParticipantService {
     public void deleteParticipant(Long id) {
         Participant existing = getParticipantById(id);
         participantRepository.delete(existing);
+    }
+
+    public Participant authenticate(String username, String password) {
+        Participant participant = participantRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
+        if (participant.getPasswordHash() == null || !PasswordUtil.matches(password, participant.getPasswordHash())) {
+            throw new InvalidCredentialsException("Invalid username or password");
+        }
+        return participant;
+    }
+
+    @Transactional
+    public void setCredentials(Long participantId, String username, String rawPassword) {
+        Participant participant = getParticipantById(participantId);
+        if (participantRepository.existsByUsername(username)) {
+            Participant existing = participantRepository.findByUsername(username).orElse(null);
+            if (existing != null && !existing.getId().equals(participantId)) {
+                throw new DuplicateResourceException("Username '" + username + "' is already taken");
+            }
+        }
+        participant.setUsername(username);
+        participant.setPasswordHash(PasswordUtil.hash(rawPassword));
+        participantRepository.save(participant);
     }
 
     private boolean isLeaderDuplicate(Team team, Participant participant) {

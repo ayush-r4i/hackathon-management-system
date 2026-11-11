@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' - College Fest Manager'">Judge Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/judge-nav :: navbar}"></div>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-title-group">
+            <h1 th:text="'Welcome, Judge ' + ${judge.name}">Welcome, Judge</h1>
+            <p class="page-subtitle">Expert Evaluator Portal — score teams and record technical evaluations</p>
+        </div>
+        <a th:href="@{/judge/scores}" class="btn">Score Teams</a>
+    </div>
+
+    <!-- Judge Info Summary -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-body">
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <span class="detail-label">Evaluator Name</span>
+                    <span class="detail-value" th:text="${judge.name}">Judge Name</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Email</span>
+                    <span class="detail-value" th:text="${judge.email}">judge@example.com</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Specialization</span>
+                    <span class="detail-value" th:text="${judge.expertise != null ? judge.expertise : 'General Evaluator'}">AI / Systems</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">Assigned Events</span>
+                    <span class="detail-value" th:text="${#lists.size(assignedEvents)}">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Events List -->
+    <div class="card">
+        <div class="card-header">
+            <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0;">My Assigned Tracks & Events</h2>
+            <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
+                You are authorized to submit and update scores exclusively for teams in these events.
+            </p>
+        </div>
+        <div class="card-body" th:if="${#lists.isEmpty(assignedEvents)}" style="text-align:center; padding: 3rem 1.5rem;">
+            <p style="color: var(--text-muted);">You have not been assigned to evaluate any events yet.</p>
+            <p style="color: var(--text-muted); font-size: 0.8125rem;">Please contact the Fest Administrator to assign tracks to your panel profile.</p>
+        </div>
+        <div class="cards-grid" th:if="${!#lists.isEmpty(assignedEvents)}" style="padding: 1.5rem;">
+            <div class="card event-card" th:each="ev : ${assignedEvents}" style="border: 1px solid var(--border);">
+                <div class="card-body">
+                    <div class="event-category" th:text="${ev.category}">Category</div>
+                    <h3 class="event-name" th:text="${ev.name}">Event Name</h3>
+                    <p class="event-desc" th:text="${ev.description}">Description</p>
+                    <div class="event-meta">
+                        <div><strong style="color:var(--text-primary);">Venue:</strong> <span th:text="${ev.venue}">Main Auditorium</span></div>
+                        <div><strong style="color:var(--text-primary);">Schedule:</strong> <span th:text="${#temporals.format(ev.startTime, 'MMM dd, HH:mm')}">Date</span></div>
+                    </div>
+                    <div class="event-footer" style="display:flex; justify-content:space-between; align-items:center;">
+                        <span class="badge badge-success">Assigned</span>
+                        <a th:href="@{/judge/scores(eventId=${ev.id})}" class="btn btn-sm">Evaluate Teams</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

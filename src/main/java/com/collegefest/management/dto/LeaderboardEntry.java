@@ -12,17 +12,27 @@ public class LeaderboardEntry {
     private String eventName;
     private double averageScore;
     private long numberOfJudgesScored;
+    private double avgTechnicalImplementation;
+    private double avgInnovation;
 
     public LeaderboardEntry() {
     }
 
     public LeaderboardEntry(Long teamId, String teamName, String eventName,
                              double averageScore, long numberOfJudgesScored) {
+        this(teamId, teamName, eventName, averageScore, numberOfJudgesScored, 0.0, 0.0);
+    }
+
+    public LeaderboardEntry(Long teamId, String teamName, String eventName,
+                             double averageScore, long numberOfJudgesScored,
+                             double avgTechnicalImplementation, double avgInnovation) {
         this.teamId = teamId;
         this.teamName = teamName;
         this.eventName = eventName;
         this.averageScore = averageScore;
         this.numberOfJudgesScored = numberOfJudgesScored;
+        this.avgTechnicalImplementation = avgTechnicalImplementation;
+        this.avgInnovation = avgInnovation;
     }
 
     public int getRank() {
@@ -71,5 +81,21 @@ public class LeaderboardEntry {
 
     public void setNumberOfJudgesScored(long numberOfJudgesScored) {
         this.numberOfJudgesScored = numberOfJudgesScored;
+    }
+
+    public double getAvgTechnicalImplementation() {
+        return avgTechnicalImplementation;
+    }
+
+    public void setAvgTechnicalImplementation(double avgTechnicalImplementation) {
+        this.avgTechnicalImplementation = avgTechnicalImplementation;
+    }
+
+    public double getAvgInnovation() {
+        return avgInnovation;
+    }
+
+    public void setAvgInnovation(double avgInnovation) {
+        this.avgInnovation = avgInnovation;
     }
 }

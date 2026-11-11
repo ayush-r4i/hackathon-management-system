@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' - College Fest Manager'">My Team</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/portal-nav :: navbar}"></div>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-title-group">
+            <h1>My Team</h1>
+            <p class="page-subtitle">View and manage your registered squad and teammates</p>
+        </div>
+        <div th:if="${team == null}">
+            <a th:href="@{/portal/team/new}" class="btn">Register Team</a>
+        </div>
+    </div>
+
+    <div class="alert alert-success" th:if="${success}">
+        <svg style="width:16px;height:16px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span th:text="${success}">Success message</span>
+    </div>
+
+    <div class="alert alert-error" th:if="${error}">
+        <svg style="width:16px;height:16px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span th:text="${error}">Error message</span>
+    </div>
+
+    <div th:if="${team == null}" class="card">
+        <div class="card-body" style="text-align:center; padding: 3rem 1.5rem;">
+            <p style="color: var(--text-muted); margin-bottom: 1rem;">You are not registered in any team yet.</p>
+            <a th:href="@{/portal/team/new}" class="btn">Register a New Team</a>
+        </div>
+    </div>
+
+    <div th:if="${team != null}">
+        <!-- Team Overview -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0;" th:text="${team.teamName}">Team Name</h2>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0.25rem 0 0 0;"
+                       th:text="${team.event != null ? 'Event: ' + team.event.name : 'No event'}">Event</p>
+                </div>
+                <span class="badge badge-primary" th:text="${team.event != null ? team.event.category : ''}">Track</span>
+            </div>
+            <div class="card-body">
+                <div class="detail-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Team Leader</span>
+                        <span class="detail-value" th:text="${team.leaderName}">Leader</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Leader Email</span>
+                        <span class="detail-value" th:text="${team.leaderEmail != null ? team.leaderEmail : '-'}">Email</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Leader Phone</span>
+                        <span class="detail-value" th:text="${team.leaderPhone != null ? team.leaderPhone : '-'}">Phone</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Registration Date</span>
+                        <span class="detail-value" th:text="${team.registeredAt != null ? #temporals.format(team.registeredAt, 'dd MMM yyyy') : '-'}">Date</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team Members List -->
+        <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <h3 style="font-size: 1.05rem; font-weight: 600; margin: 0;">Roster Members</h3>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
+                        Current: <strong th:text="${#lists.size(members)}">1</strong> /
+                        Max Allowed: <strong th:text="${team.event != null ? team.event.maxTeamSize : '-'}">4</strong>
+                    </p>
+                </div>
+            </div>
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Member Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>College / Affiliation</th>
+                        <th>Role</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="m, iter : ${members}">
+                        <td th:text="${iter.count}">1</td>
+                        <td><strong th:text="${m.name}">Member Name</strong></td>
+                        <td th:text="${m.email != null ? m.email : '-'}">email@example.com</td>
+                        <td th:text="${m.phone != null ? m.phone : '-'}">+1 555-0100</td>
+                        <td th:text="${m.college != null ? m.college : '-'}">University</td>
+                        <td>
+                            <span th:if="${iter.first}" class="badge badge-primary">Leader (#1)</span>
+                            <span th:if="${!iter.first}" class="badge badge-secondary">Member</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Add Member Form -->
+        <div class="card" th:if="${team.event != null and #lists.size(members) < team.event.maxTeamSize}">
+            <div class="card-header">
+                <h3 style="font-size: 1.05rem; font-weight: 600; margin: 0;">Add Teammate</h3>
+                <p style="font-size: 0.8125rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">
+                    Add remaining members up to the team capacity (<span th:text="${team.event.maxTeamSize}">4</span> max).
+                </p>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/portal/team/members/add}" method="post">
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="memberName">Full Name *</label>
+                            <input type="text" id="memberName" name="name" placeholder="Teammate name" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="memberEmail">Email Address</label>
+                            <input type="email" id="memberEmail" name="email" placeholder="teammate@college.edu">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="memberPhone">Phone Number</label>
+                            <input type="text" id="memberPhone" name="phone" placeholder="+1 555-0123">
+                        </div>
+                        <div class="form-group" style="margin-bottom:0;">
+                            <label for="memberCollege">College</label>
+                            <input type="text" id="memberCollege" name="college" placeholder="College / University">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Add Member</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' - College Fest Manager'">Score Teams</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div th:replace="~{fragments/judge-nav :: navbar}"></div>
+
+<div class="container">
+    <div class="page-header">
+        <div class="page-title-group">
+            <h1>Score Teams</h1>
+            <p class="page-subtitle">Submit and review evaluations for teams participating in your assigned events</p>
+        </div>
+    </div>
+
+    <div class="alert alert-success" th:if="${success}">
+        <svg style="width:16px;height:16px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <span th:text="${success}">Success message</span>
+    </div>
+
+    <div class="alert alert-error" th:if="${error}">
+        <svg style="width:16px;height:16px;flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span th:text="${error}">Error message</span>
+    </div>
+
+    <!-- Event Filter Dropdown -->
+    <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-body">
+            <form method="get" th:action="@{/judge/scores}" style="display:flex; gap:1rem; align-items:flex-end; flex-wrap:wrap;">
+                <div class="form-group" style="margin-bottom:0; flex:1; min-width:260px;">
+                    <label for="eventId">Select Assigned Event to Evaluate</label>
+                    <select id="eventId" name="eventId" class="form-select" onchange="this.form.submit()">
+                        <option value="">— Choose an Assigned Event —</option>
+                        <option th:each="ev : ${assignedEvents}"
+                                th:value="${ev.id}"
+                                th:text="${ev.name} + ' (' + ${ev.category} + ')'"
+                                th:selected="${selectedEventId != null and selectedEventId == ev.id}">
+                            Event Name
+                        </option>
+                    </select>
+                </div>
+                <noscript>
+                    <button type="submit" class="btn">Filter</button>
+                </noscript>
+            </form>
+        </div>
+    </div>
+
+    <!-- Teams Table for Selected Event -->
+    <div class="card" th:if="${selectedEventId != null}">
+        <div class="card-header">
+            <h2 style="font-size: 1.125rem; font-weight: 600; margin: 0;">Eligible Teams for Scoring</h2>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                <tr>
+                    <th>Team Name</th>
+                    <th>Leader</th>
+                    <th>Members</th>
+                    <th>Evaluation Status</th>
+                    <th style="text-align: right; width: 140px;">Action</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:if="${#lists.isEmpty(teams)}" class="empty-row">
+                    <td colspan="5">No teams registered for this event yet.</td>
+                </tr>
+                <tr th:each="t : ${teams}">
+                    <td><strong th:text="${t.teamName}">Team Name</strong></td>
+                    <td th:text="${t.leaderName}">Leader</td>
+                    <td th:text="${t.participants != null ? #lists.size(t.participants) : 0}">0</td>
+                    <td>
+                        <span th:if="${scoreByTeamId.containsKey(t.id)}" class="badge badge-success">
+                            Scored (<span th:text="${#numbers.formatDecimal(scoreByTeamId.get(t.id).finalScore, 1, 2)}">8.50</span> / 10)
+                        </span>
+                        <span th:if="${!scoreByTeamId.containsKey(t.id)}" class="badge badge-secondary">
+                            Pending Evaluation
+                        </span>
+                    </td>
+                    <td style="text-align: right;">
+                        <a th:if="${!scoreByTeamId.containsKey(t.id)}"
+                           th:href="@{/judge/scores/new(teamId=${t.id})}"
+                           class="btn btn-sm">
+                            Score
+                        </a>
+                        <a th:if="${scoreByTeamId.containsKey(t.id)}"
+                           th:href="@{/judge/scores/edit(scoreId=${scoreByTeamId.get(t.id).id})}"
+                           class="btn btn-secondary btn-sm">
+                            Edit Score
+                        </a>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card" th:if="${selectedEventId == null}">
+        <div class="card-body" style="text-align:center; padding: 3rem 1.5rem;">
+            <p style="color: var(--text-muted);">Please select one of your assigned events above to view and evaluate teams.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

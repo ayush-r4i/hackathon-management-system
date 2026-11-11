@@ -15,7 +15,7 @@
                 <polyline points="2 17 12 22 22 17"></polyline>
                 <polyline points="2 12 12 17 22 12"></polyline>
             </svg>
-            <h1>College Fest Manager</h1>
+            <h1>HackArena Fest Manager</h1>
             <p>Sign in to manage events, teams, and live scoring</p>
         </div>
 
@@ -28,10 +28,18 @@
             <span th:text="${error}">Invalid credentials</span>
         </div>
 
+        <!-- Role Tabs -->
+        <div class="role-tabs">
+            <button type="button" class="role-tab" th:classappend="${selectedRole == null or selectedRole == 'ADMIN' ? 'active' : ''}" data-role="ADMIN" onclick="selectRole(this, 'ADMIN')">Admin</button>
+            <button type="button" class="role-tab" th:classappend="${selectedRole == 'PARTICIPANT' ? 'active' : ''}" data-role="PARTICIPANT" onclick="selectRole(this, 'PARTICIPANT')">Participant</button>
+            <button type="button" class="role-tab" th:classappend="${selectedRole == 'JUDGE' ? 'active' : ''}" data-role="JUDGE" onclick="selectRole(this, 'JUDGE')">Judge</button>
+        </div>
+
         <form th:action="@{/login}" method="post">
+            <input type="hidden" name="role" id="roleInput" th:value="${selectedRole != null ? selectedRole : 'ADMIN'}">
             <div class="form-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" placeholder="admin" required autofocus>
+                <input type="text" id="username" name="username" placeholder="Enter username" required autofocus>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
@@ -41,9 +49,17 @@
         </form>
 
         <div class="login-hint">
-            Default credentials: <code>admin</code> / <code>admin123</code>
+            Admin default: <code>admin</code> / <code>admin123</code>
         </div>
     </div>
 </div>
+
+<script>
+function selectRole(btn, role) {
+    document.querySelectorAll('.role-tab').forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    document.getElementById('roleInput').value = role;
+}
+</script>
 </body>
 </html>

@@ -43,6 +43,8 @@ CREATE TABLE IF NOT EXISTS participant (
     email VARCHAR(100),
     phone VARCHAR(20),
     college VARCHAR(150),
+    username VARCHAR(100) UNIQUE,
+    password_hash VARCHAR(64),
     team_id BIGINT NOT NULL,
     CONSTRAINT fk_participant_team FOREIGN KEY (team_id) REFERENCES team (id) ON DELETE CASCADE
 );
@@ -52,7 +54,17 @@ CREATE TABLE IF NOT EXISTS judge (
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     phone VARCHAR(20),
-    expertise VARCHAR(150)
+    expertise VARCHAR(150),
+    username VARCHAR(100) UNIQUE,
+    password_hash VARCHAR(64)
+);
+
+CREATE TABLE IF NOT EXISTS judge_event_assignment (
+    judge_id BIGINT NOT NULL,
+    event_id BIGINT NOT NULL,
+    PRIMARY KEY (judge_id, event_id),
+    CONSTRAINT fk_jea_judge FOREIGN KEY (judge_id) REFERENCES judge (id) ON DELETE CASCADE,
+    CONSTRAINT fk_jea_event FOREIGN KEY (event_id) REFERENCES event (id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS score (

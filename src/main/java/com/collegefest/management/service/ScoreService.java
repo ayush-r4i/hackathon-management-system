@@ -129,19 +129,49 @@ public class ScoreService {
                     Team team = teamScores.get(0).getTeam();
                     double avg = teamScores.stream().mapToDouble(Score::getFinalScore).average().orElse(0.0);
                     avg = Math.round(avg * 100.0) / 100.0;
+
+                    double avgTech = teamScores.stream()
+                            .mapToDouble(s -> s.getTechnicalImplementation() != null ? s.getTechnicalImplementation() : 0.0)
+                            .average().orElse(0.0);
+                    avgTech = Math.round(avgTech * 100.0) / 100.0;
+
+                    double avgInno = teamScores.stream()
+                            .mapToDouble(s -> s.getInnovation() != null ? s.getInnovation() : 0.0)
+                            .average().orElse(0.0);
+                    avgInno = Math.round(avgInno * 100.0) / 100.0;
+
                     return new LeaderboardEntry(
                             team.getId(),
                             team.getTeamName(),
                             team.getEvent() != null ? team.getEvent().getName() : "",
                             avg,
-                            teamScores.size());
+                            teamScores.size(),
+                            avgTech,
+                            avgInno);
                 })
-                .sorted(Comparator.comparingDouble(LeaderboardEntry::getAverageScore).reversed())
+                .sorted(Comparator.<LeaderboardEntry>comparingDouble(e -> -e.getAverageScore())
+                        .thenComparingDouble(e -> -e.getAvgTechnicalImplementation())
+                        .thenComparingDouble(e -> -e.getAvgInnovation()))
                 .collect(Collectors.toList());
 
-        int rank = 1;
-        for (LeaderboardEntry entry : entries) {
-            entry.setRank(rank++);
+        // Assign ranks with tie breaking and shared ranks for true ties
+        int currentRank = 1;
+        for (int i = 0; i < entries.size(); i++) {
+            if (i == 0) {
+                entries.get(i).setRank(currentRank);
+            } else {
+                LeaderboardEntry prev = entries.get(i - 1);
+                LeaderboardEntry curr = entries.get(i);
+                boolean tied = Double.compare(curr.getAverageScore(), prev.getAverageScore()) == 0
+                        && Double.compare(curr.getAvgTechnicalImplementation(), prev.getAvgTechnicalImplementation()) == 0
+                        && Double.compare(curr.getAvgInnovation(), prev.getAvgInnovation()) == 0;
+                if (tied) {
+                    curr.setRank(prev.getRank());
+                } else {
+                    currentRank = i + 1;
+                    curr.setRank(currentRank);
+                }
+            }
         }
         return entries;
     }

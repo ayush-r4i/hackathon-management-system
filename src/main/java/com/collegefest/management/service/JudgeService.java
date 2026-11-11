@@ -1,9 +1,13 @@
 package com.collegefest.management.service;
 
+import com.collegefest.management.entity.Event;
 import com.collegefest.management.entity.Judge;
 import com.collegefest.management.exception.DuplicateResourceException;
+import com.collegefest.management.exception.InvalidCredentialsException;
 import com.collegefest.management.exception.ResourceNotFoundException;
+import com.collegefest.management.repository.EventRepository;
 import com.collegefest.management.repository.JudgeRepository;
+import com.collegefest.management.util.PasswordUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,10 +18,12 @@ import java.util.List;
 public class JudgeService {
 
     private final JudgeRepository judgeRepository;
+    private final EventRepository eventRepository;
 
     @Autowired
-    public JudgeService(JudgeRepository judgeRepository) {
+    public JudgeService(JudgeRepository judgeRepository, EventRepository eventRepository) {
         this.judgeRepository = judgeRepository;
+        this.eventRepository = eventRepository;
     }
 
     public List<Judge> getAllJudges() {
@@ -58,5 +64,46 @@ public class JudgeService {
     public void deleteJudge(Long id) {
         Judge existing = getJudgeById(id);
         judgeRepository.delete(existing);
+    }
+
+    public Judge authenticate(String username, String password) {
+        Judge judge = judgeRepository.findByUsername(username)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid username or password"));
+        if (judge.getPasswordHash() == null || !PasswordUtil.matches(password, judge.getPasswordHash())) {
+            throw new InvalidCredentialsException("Invalid username or password");
+        }
+        return judge;
+    }
+
+    @Transactional
+    public void assignEvent(Long judgeId, Long eventId) {
+        Judge judge = getJudgeById(judgeId);
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + eventId));
+        if (!judge.getAssignedEvents().contains(event)) {
+            judge.getAssignedEvents().add(event);
+            judgeRepository.save(judge);
+        }
+    }
+
+    @Transactional
+    public void unassignEvent(Long judgeId, Long eventId) {
+        Judge judge = getJudgeById(judgeId);
+        judge.getAssignedEvents().removeIf(e -> e.getId().equals(eventId));
+        judgeRepository.save(judge);
+    }
+
+    @Transactional
+    public void setCredentials(Long judgeId, String username, String rawPassword) {
+        Judge judge = getJudgeById(judgeId);
+        if (judgeRepository.existsByUsername(username)) {
+            Judge existing = judgeRepository.findByUsername(username).orElse(null);
+            if (existing != null && !existing.getId().equals(judgeId)) {
+                throw new DuplicateResourceException("Username '" + username + "' is already taken");
+            }
+        }
+        judge.setUsername(username);
+        judge.setPasswordHash(PasswordUtil.hash(rawPassword));
+        judgeRepository.save(judge);
     }
 }

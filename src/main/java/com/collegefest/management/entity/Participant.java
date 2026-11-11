@@ -26,6 +26,12 @@ public class Participant {
     @Column(length = 150)
     private String college;
 
+    @Column(unique = true, length = 100)
+    private String username;
+
+    @Column(name = "password_hash", length = 64)
+    private String passwordHash;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id", nullable = false)
     private Team team;
@@ -71,6 +77,22 @@ public class Participant {
 
     public void setCollege(String college) {
         this.college = college;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     public Team getTeam() {

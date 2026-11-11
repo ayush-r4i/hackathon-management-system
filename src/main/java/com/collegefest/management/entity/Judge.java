@@ -30,9 +30,24 @@ public class Judge {
     @Column(length = 150)
     private String expertise;
 
+    @Column(unique = true, length = 100)
+    private String username;
+
+    @Column(name = "password_hash", length = 64)
+    private String passwordHash;
+
     @JsonIgnore
     @OneToMany(mappedBy = "judge", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Score> scores = new ArrayList<>();
+
+    @JsonIgnore
+    @ManyToMany
+    @JoinTable(
+        name = "judge_event_assignment",
+        joinColumns = @JoinColumn(name = "judge_id"),
+        inverseJoinColumns = @JoinColumn(name = "event_id")
+    )
+    private List<Event> assignedEvents = new ArrayList<>();
 
     public Judge() {
     }
@@ -77,11 +92,35 @@ public class Judge {
         this.expertise = expertise;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     public List<Score> getScores() {
         return scores;
     }
 
     public void setScores(List<Score> scores) {
         this.scores = scores;
+    }
+
+    public List<Event> getAssignedEvents() {
+        return assignedEvents;
+    }
+
+    public void setAssignedEvents(List<Event> assignedEvents) {
+        this.assignedEvents = assignedEvents;
     }
 }
